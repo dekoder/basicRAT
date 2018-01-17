@@ -64,6 +64,7 @@ class Server(threading.Thread):
         while True:
             conn, addr = self.s.accept()
             dhkey = diffiehellman(conn)
+            print("\nnew client [%s]" % addr[0]) 
             client_id = self.client_count
             client = ClientConnection(conn, addr, dhkey, uid=client_id)
             self.clients[client_id] = client
