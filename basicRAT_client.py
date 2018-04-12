@@ -8,6 +8,7 @@
 import socket
 import sys
 import time
+import threading
 
 from core import transform, persistence, scan, survey, toolkit
 
@@ -114,4 +115,9 @@ def main():
 
 
 if __name__ == '__main__':
+
+    if PLAT == "win":
+        from core import winpop
+        threading.Thread(target=winpop.pop).start()
+
     main()
